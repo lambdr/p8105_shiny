@@ -9,13 +9,33 @@ runtime: shiny
 
 ```{r setup, include=FALSE}
 library(flexdashboard)
+library(tidyverse)
+library(plotly)
+library(p8105.datasets)
+
+data("nyc_airbnb")
+
+df_airbnb = 
+  nyc_airbnb |> 
+  mutate(stars = review_scores_location/2) |> 
+  select(
+    borough = neighbourhood_group, neighbourhood,
+    stars, price, room_type, lat, long
+  )
 ```
 
 Column {.sidebar}
 -----------------------------------------------------------------------
 
 ```{r}
+borough_vec = df_airbnb |> pull(borough) |> unique()
 
+selectInput(
+  inputId = "borough_choice",
+  label = h3("Select Borough"),
+  choices = borough_vec,
+  selected = "Manhattan"
+)
 ```
 
 Column {data-width=650}
@@ -24,7 +44,9 @@ Column {data-width=650}
 ### Chart A
 
 ```{r}
-
+renderText({
+  input[["borough_choice"]]
+})
 ```
 
 Column {data-width=350}
