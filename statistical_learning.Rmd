@@ -1,0 +1,98 @@
+---
+title: "Statistical Learning"
+author: "Derek Lamb"
+date: "`r Sys.Date()`"
+output: github_document
+---
+### Load packages
+```{r load packages and default options, message = FALSE}
+# Load packages
+library(tidyverse)
+library(glmnet)
+
+# Set default figure options
+knitr::opts_chunk$set(
+  fig.width = 6,
+  out.width = "90%"
+)
+
+theme_set(theme_bw() + theme(legend.position = "bottom"))
+
+options(
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis"
+)
+
+scale_colour_discrete = scale_colour_viridis_d
+scale_fill_discrete = scale_fill_viridis_d
+
+set.seed(11)
+```
+
+
+```{r data import}
+df_bwt <- 
+  read_csv("data/birthweight.csv") |> 
+  janitor::clean_names() |>
+  mutate(
+    babysex = as.factor(babysex),
+    babysex = fct_recode(babysex, "male" = "1", "female" = "2"),
+    frace = as.factor(frace),
+    frace = fct_recode(
+      frace, "white" = "1", "black" = "2", "asian" = "3", 
+      "puerto rican" = "4", "other" = "8"),
+    malform = as.logical(malform),
+    mrace = as.factor(mrace),
+    mrace = fct_recode(
+      mrace, "white" = "1", "black" = "2", "asian" = "3", 
+      "puerto rican" = "4")) |> 
+  sample_n(200)
+```
+
+Get predictors and outcome
+
+```{r}
+x = model.matrix(bwt ~ ., data = df_bwt)[, -1]
+
+y = df_bwt |> pull(bwt)
+```
+
+```{r}
+lambda = 10^(seq(3, -2, -0.1))
+
+lasso_fit = 
+  glmnet(x, y, lambda = lambda)
+
+lasso_cv =
+  cv.glmnet(x, y, lambda = lambda)
+
+lambda_opt = lasso_cv$lambda.min
+```
+
+let's look at lasso results
+
+```{r}
+lasso_fit |> 
+  broom::tidy() |> 
+  filter(term != "(Intercept)") |> 
+  select(term, lambda, estimate) |> 
+  complete(term, lambda, fill = list(estimate = 0)) |> 
+  ggplot(aes(x = log(lambda, 10), y = estimate, color = term, group = term)) +
+  geom_path()
+
+
+lasso_fit |> 
+  broom::tidy() |> 
+  filter(term != "(Intercept)") |> 
+  filter(step == 20)
+
+```
+
+
+```{r}
+lasso_cv |> 
+  broom::tidy() |> 
+  ggplot(aes(x = log(lambda, 10), y = estimate)) +
+  geom_point()
+```
+
