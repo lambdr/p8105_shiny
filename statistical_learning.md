@@ -9,6 +9,7 @@ Derek Lamb
 # Load packages
 library(tidyverse)
 library(glmnet)
+library(palmerpenguins)
 
 # Set default figure options
 knitr::opts_chunk$set(
@@ -120,3 +121,42 @@ lasso_cv |>
 ```
 
 <img src="statistical_learning_files/figure-gfm/unnamed-chunk-4-1.png" width="90%" />
+
+## Penguins
+
+``` r
+data("penguins")
+
+penguins |> 
+  ggplot(aes(x = bill_length_mm, y = flipper_length_mm, color = species)) +
+  geom_point()
+```
+
+    ## Warning: Removed 2 rows containing missing values (`geom_point()`).
+
+<img src="statistical_learning_files/figure-gfm/unnamed-chunk-5-1.png" width="90%" />
+
+``` r
+penguins = 
+  penguins |> 
+  select(species, bill_length_mm, flipper_length_mm) |> 
+  drop_na()
+```
+
+## K-means
+
+``` r
+kmeans_fit = 
+  penguins |> 
+  select(-species) |> 
+  scale() |> 
+  kmeans(centers = 3)
+
+
+penguins |> 
+  broom::augment(kmeans_fit, data = _) |> 
+  ggplot(aes(x = bill_length_mm, y = flipper_length_mm, color = .cluster)) +
+  geom_point()
+```
+
+<img src="statistical_learning_files/figure-gfm/do kmeans fit-1.png" width="90%" />
