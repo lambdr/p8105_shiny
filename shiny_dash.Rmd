@@ -81,7 +81,7 @@ renderText({
 ```
 
 ### Chart C
-
+Selected room type is
 ```{r}
-
+renderText({input[["room_type"]]})
 ```
